@@ -5,9 +5,9 @@ services:
     build: 
       context: ./services/web
       # args:
-      #   - IMAGE_NAME="Pluvium_web"
-      #   - IMAGE_TITLE="SERVIÇO WEB - Pluvium"
-      #   - IMAGE_DESCRIPTION="Pluvium - Sistema de Monitoramento Hidrometeorológico - Serviço web do sistema"
+      #   - IMAGE_NAME=""
+      #   - IMAGE_TITLE=""
+      #   - IMAGE_DESCRIPTION=""
       #   - IMAGE_VERSION
       #   - IMAGE_AUTHORS
       #   - IMAGE_VENDOR
@@ -29,14 +29,14 @@ services:
       - db
 
   db:
-    image: mysql
+    image: mariadb
     command: --secure-file-priv=""
     ports:
       - 3307:3307
     environment:
       - MYSQL_TCP_PORT=${MYSQL_TCP_PORT:-3307}
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-0000}
-      - MYSQL_DATABASE=${MYSQL_DATABASE:-pluvium_dev}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-db_dev}
       - MYSQL_USER=${MYSQL_USER:-dbmanager}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD:-0000}
     # volumes:

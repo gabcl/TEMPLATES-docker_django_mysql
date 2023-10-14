@@ -1,5 +1,33 @@
-# pull official base image
-FROM python:3.9.5-slim-buster
+# ====================================
+# COMPILE
+# ====================================
+FROM python:3.11-alpine AS compile-image
+
+# Install packages
+RUN apk update && \
+    apk add --no-cache g++ unixodbc-dev mariadb-dev
+
+
+# Create venv
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+
+# pip install
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+
+
+# ====================================
+# BUILD
+# ====================================
+FROM python:3.11-alpine AS build-image
+
+
+# Copy venv from compile-image
+COPY --from=compile-image /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 
 # set environment variables
@@ -7,10 +35,10 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 
-# USUÁRIO -------------------------------------------------------------------------
+# User ------------------------------------
 # Cria usuario
-RUN groupadd --gid 1001 appuser && \
-    useradd --create-home --system --uid 1001 --gid appuser appuser
+RUN addgroup --gid 1001 appuser && \
+    adduser -S --uid 1001 -G appuser appuser
 
 
 # set work directory
@@ -19,36 +47,13 @@ WORKDIR /usr/src/app
 
 
 
-# Dependências -------------------------------------------------------------------------
-#RUN apt-get update && apt-get install -y unixodbc g++ default-libmysqlclient-dev unixodbc-dev
-
-# install Microsoft SQL Server requirements.
-ENV ACCEPT_EULA=Y
-RUN apt-get update -y \
-  && apt-get install -y --no-install-recommends curl g++ gnupg unixodbc-dev default-libmysqlclient-dev 
+# Dependencies ------------------------------------
+RUN set -x && \
+    apk update && \
+    apk add --no-cache bash mariadb-dev
 
 
-# Add SQL Server ODBC Driver 17 for Ubuntu 18.04
-RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-  && curl https://packages.microsoft.com/config/debian/10/prod.list > /etc/apt/sources.list.d/mssql-release.list \
-  && apt-get update \
-  && apt-get install -y --no-install-recommends --allow-unauthenticated msodbcsql17 mssql-tools \
-  && echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile \
-  && echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
-
-# Configurações para o pyodbc
-RUN sed -i 's/TLSv1.2/TLSv1/g' /etc/ssl/openssl.cnf
-RUN sed -i 's/SECLEVEL=2/SECLEVEL=1/g' /etc/ssl/openssl.cnf
-
-
-
-# PACOTES -------------------------------------------------------------------------
-RUN pip install --upgrade pip
-COPY --chown=appuser:appuser ./requirements.txt /usr/src/app/requirements.txt
-RUN pip install -r requirements.txt
-
-
-# PROJETO -------------------------------------------------------------------------
+# Project ------------------------------------
 # Copia arquivos
 COPY --chown=appuser:appuser . /usr/src/app/
 
@@ -59,7 +64,7 @@ RUN mkdir -p /usr/src/app/static && chown appuser:appuser /usr/src/app/static
 USER appuser
 
 
-# ENTRYPOINT -------------------------------------------------------------------------
+# ENTRYPOINT ------------------------------------
 # ENTRYPOINT ["tail", "-f", "/dev/null"]
 
 

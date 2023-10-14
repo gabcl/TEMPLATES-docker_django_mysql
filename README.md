@@ -2,8 +2,8 @@
 
 ## Quick Start  
 
-    [Up] docker-compose --env-file .env -f docker-compose.yml up -d --build
-    [Down] docker-compose --env-file .env -f docker-compose.yml down
+    [Up] docker-compose --env-file .env -f docker-compose.dev.yml up -d --build
+    [Down] docker-compose --env-file .env -f docker-compose.dev.yml down
 
 
 ----------------------------------------------
@@ -22,5 +22,5 @@
     git add .  
     git commit -m "initial"  
     git branch -M main  
-    git remote add origin https://github.com/gabcl/template_django_mysql.git  
+    git remote add origin https://github.com/gabcl/TEMPLATES-docker_django_mysql.git
     git push -u origin main  
